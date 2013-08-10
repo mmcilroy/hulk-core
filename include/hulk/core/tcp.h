@@ -26,10 +26,10 @@ struct callback
 class event_loop
 {
 public:
-    event_loop( int max_events, int timeout, callback& cb );
+    event_loop( int max_events, callback& cb );
     void watch( int fd, bool listening );
     void dont_watch( int fd );
-    int loop();
+    int loop( int timeout=0 );
 
 protected:
     void on_open( struct epoll_event* );
@@ -40,7 +40,6 @@ private:
     struct epoll_event* _events;
     int _efd;
     int _max_events;
-    int _timeout;
     callback& _cb;
 };
 

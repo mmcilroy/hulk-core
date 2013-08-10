@@ -24,7 +24,7 @@ struct echo_callback : public tcp::callback
 int main( int argc, char** argv )
 {
     echo_callback cb;
-    tcp::event_loop eloop( 1024, 5000, cb );
+    tcp::event_loop eloop( 1024, cb );
     eloop.watch( tcp::bind( 5557, 1024 ), true );
 
     while( 1 ) {

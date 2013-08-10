@@ -11,9 +11,9 @@ namespace hulk {
 namespace core {
 
 // -----------------------------------------------------------------------------
-#define LOG_DEBUG( l, m ) std::stringstream ss; ss << "DBG " << filename( __FILE__ ) << ":" << __LINE__ << " - " << m; l.write( log::DEBUG, ss.str() );
-#define LOG_INFO( l, m )  std::stringstream ss; ss << "INF " << filename( __FILE__ ) << ":" << __LINE__ << " - " << m; l.write( log::INFO, ss.str() );
-#define LOG_ERROR( l, m ) std::stringstream ss; ss << "ERR " << filename( __FILE__ ) << ":" << __LINE__ << " - " << m; l.write( log::ERROR, ss.str() );
+#define LOG_DEBUG( l, m ) { std::stringstream ss; ss << "DBG " << filename( __FILE__ ) << ":" << __LINE__ << " - " << m; l.write( log::DEBUG, ss.str() ); }
+#define LOG_INFO( l, m )  { std::stringstream ss; ss << "INF " << filename( __FILE__ ) << ":" << __LINE__ << " - " << m; l.write( log::INFO, ss.str() );  }
+#define LOG_ERROR( l, m ) { std::stringstream ss; ss << "ERR " << filename( __FILE__ ) << ":" << __LINE__ << " - " << m; l.write( log::ERROR, ss.str() ); }
 
 inline const char* filename( const char* s ) {
     return strrchr( s, '/' ) ? strrchr( s, '/' ) + 1 : s;

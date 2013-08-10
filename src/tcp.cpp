@@ -111,9 +111,8 @@ struct event_data
     int _fd;
 };
 
-event_loop::event_loop( int max_events, int timeout, callback& cb )
+event_loop::event_loop( int max_events, callback& cb )
 : _max_events( max_events ),
-  _timeout( timeout ),
   _cb( cb )
 {
     _efd = epoll_create1( 0 );
@@ -202,9 +201,9 @@ void event_loop::on_recv( struct epoll_event* e )
     }
 }
 
-int event_loop::loop()
+int event_loop::loop( int timeout )
 {
-    int n = epoll_wait( _efd, _events, _max_events, _timeout );
+    int n = epoll_wait( _efd, _events, _max_events, timeout );
     for( int i = 0; i < n; i++ )
     {
         event_data* edata = (event_data*)_events[i].data.ptr;
