@@ -26,8 +26,8 @@ struct callback
 class event_loop
 {
 public:
-    event_loop( int max_events, callback& cb );
-    void watch( int fd, bool listening );
+    event_loop( int max_events=1024 );
+    void watch( int fd, bool listening, callback& cb );
     void dont_watch( int fd );
     int loop( int timeout=0 );
 
@@ -40,7 +40,6 @@ private:
     struct epoll_event* _events;
     int _efd;
     int _max_events;
-    callback& _cb;
 };
 
 }

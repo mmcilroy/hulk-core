@@ -24,10 +24,11 @@ struct echo_callback : public tcp::callback
 int main( int argc, char** argv )
 {
     echo_callback cb;
-    tcp::event_loop eloop( 1024, cb );
-    eloop.watch( tcp::bind( 5557, 1024 ), true );
+
+    tcp::event_loop eloop( 1024 );
+    eloop.watch( tcp::bind( 5557, 1024 ), true, cb );
 
     while( 1 ) {
-        eloop.loop();
+        eloop.loop( 1000 );
     }
 }

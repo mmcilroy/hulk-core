@@ -104,16 +104,18 @@ int hulk::core::tcp::non_blocking( int fd )
 
 struct event_data
 {
-    event_data( int fd, bool listening )
-    : _fd( fd ), _listening( listening ) {}
+    event_data( int fd, bool listening, callback& cb )
+    : _fd( fd ),
+      _listening( listening ),
+      _cb( cb ) {}
 
-    bool _listening;
     int _fd;
+    bool _listening;
+    callback& _cb;
 };
 
-event_loop::event_loop( int max_events, callback& cb )
-: _max_events( max_events ),
-  _cb( cb )
+event_loop::event_loop( int max_events )
+: _max_events( max_events )
 {
     _efd = epoll_create1( 0 );
     if( _efd == -1 ) {
@@ -126,10 +128,10 @@ event_loop::event_loop( int max_events, callback& cb )
     }
 }
 
-void event_loop::watch( int fd, bool listening )
+void event_loop::watch( int fd, bool listening, callback& cb )
 {
     struct epoll_event event;
-    event.data.ptr = new event_data( fd, listening );
+    event.data.ptr = new event_data( fd, listening, cb );
     event.events = EPOLLIN | EPOLLET;
 
     if( epoll_ctl( _efd, EPOLL_CTL_ADD, fd, &event ) == -1 ) {
@@ -155,8 +157,8 @@ void event_loop::on_open( struct epoll_event* e )
     if( afd != -1 )
     {
         non_blocking( afd );
-        _cb.on_open( afd );
-        watch( afd, false );
+        edata->_cb.on_open( afd );
+        watch( afd, false, edata->_cb );
     }
 }
 
@@ -164,7 +166,7 @@ void event_loop::on_close( struct epoll_event* e )
 {
     event_data* edata = (event_data*)e->data.ptr;
     dont_watch( edata->_fd );
-    _cb.on_close( edata->_fd );
+    edata->_cb.on_close( edata->_fd );
     ::close( edata->_fd );
     delete edata;
 }
@@ -193,7 +195,7 @@ void event_loop::on_recv( struct epoll_event* e )
             break;
         }
 
-        _cb.on_recv( edata->_fd, buf, count );
+        edata->_cb.on_recv( edata->_fd, buf, count );
     }
 
     if( done ) {
