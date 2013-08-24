@@ -27,11 +27,13 @@ public:
         DEBUG, INFO, WARN, ERROR
     } level;
 
-    log( level l ) {
+    log( level l )
+    {
         _level = l;
     }
 
-    virtual void write( level l, const std::string& s ) {
+    virtual void write( level l, const std::string& s )
+    {
         if( l >= _level ) std::cout << s << std::endl;
     }
 
@@ -43,14 +45,16 @@ private:
 class logger
 {
 public:
-    static logger& instance() {
+    static logger& instance()
+    {
         if( !_instance ) {
             _instance = new logger;
         }
         return *_instance;
     }
 
-    log& get( const std::string& id ) {
+    log& get( const std::string& id )
+    {
         logmap::const_iterator it = _logs.find( id );
         if( it == _logs.end() ) {
             return _default_log;
@@ -69,8 +73,6 @@ private:
 
     static logger* _instance;
 };
-
-logger* logger::_instance = 0;
 
 }
 }

@@ -2,11 +2,22 @@
 #ifndef _hulk_core_thread_h_
 #define _hulk_core_thread_h_
 
-#include "pthread.h"
+#include <stdio.h>
+#include <time.h>
+#include <pthread.h>
 
 namespace hulk {
 namespace core {
 
+// -----------------------------------------------------------------------------
+void sleep_ms( int ms )
+{
+    struct timespec t, r;
+    t.tv_sec = 0; t.tv_nsec = ms * 1000000;
+    nanosleep( &t , &r );
+}
+
+// -----------------------------------------------------------------------------
 class thread
 {
 public:
@@ -30,6 +41,42 @@ private:
     }
 
     pthread_t _handle;
+};
+
+// -----------------------------------------------------------------------------
+class mutex
+{
+public:
+    mutex() {
+        pthread_mutex_init( &_mutex, NULL );
+    }
+
+    void lock() {
+        pthread_mutex_lock( &_mutex );
+    }
+
+    void unlock() {
+        pthread_mutex_unlock( &_mutex );
+    }
+
+private:
+    pthread_mutex_t _mutex;
+};
+
+// -----------------------------------------------------------------------------
+class lock_guard
+{
+public:
+    lock_guard( mutex& mutex ) : _mutex( mutex ) { 
+        _mutex.lock();
+    }
+
+    ~lock_guard() {
+        _mutex.unlock();
+    }
+
+private:
+    mutex _mutex;
 };
 
 }
