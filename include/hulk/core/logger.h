@@ -11,9 +11,9 @@ namespace hulk {
 namespace core {
 
 // -----------------------------------------------------------------------------
-#define LOG_DEBUG( l, m ) { std::stringstream ss; ss << "DBG " << ::hulk::core::filename( __FILE__ ) << ":" << __LINE__ << " - " << m; l.write( ::hulk::core::log::DEBUG, ss.str() ); }
-#define LOG_INFO( l, m )  { std::stringstream ss; ss << "INF " << ::hulk::core::filename( __FILE__ ) << ":" << __LINE__ << " - " << m; l.write( ::hulk::core::log::INFO, ss.str() );  }
-#define LOG_ERROR( l, m ) { std::stringstream ss; ss << "ERR " << ::hulk::core::filename( __FILE__ ) << ":" << __LINE__ << " - " << m; l.write( ::hulk::core::log::ERROR, ss.str() ); }
+#define LOG_DEBUG( l, m ) { std::stringstream ss; ss << std::endl << "DBG " << ::hulk::core::filename( __FILE__ ) << ":" << __LINE__ << " - " << m; l.write( ::hulk::core::log::DEBUG, ss.str() ); }
+#define LOG_INFO( l, m )  { std::stringstream ss; ss << std::endl << "INF " << ::hulk::core::filename( __FILE__ ) << ":" << __LINE__ << " - " << m; l.write( ::hulk::core::log::INFO, ss.str() );  }
+#define LOG_ERROR( l, m ) { std::stringstream ss; ss << std::endl << "ERR " << ::hulk::core::filename( __FILE__ ) << ":" << __LINE__ << " - " << m; l.write( ::hulk::core::log::ERROR, ss.str() ); }
 
 inline const char* filename( const char* s ) {
     return strrchr( s, '/' ) ? strrchr( s, '/' ) + 1 : s;
