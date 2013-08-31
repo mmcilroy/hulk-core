@@ -75,6 +75,9 @@ int hulk::core::tcp::bind( int port, int backlog )
     int fd = create_socket( 0, port );
     non_blocking( fd );
 
+    int optval = 1;
+    setsockopt( fd, SOL_SOCKET, SO_REUSEADDR, &optval, sizeof optval );
+
     if( ::listen( fd, backlog ) == -1 ) {
         throw std::runtime_error( "could not bind socket" );
     }
