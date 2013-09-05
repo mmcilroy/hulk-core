@@ -46,10 +46,15 @@ int create_socket( const char* host, int port )
             continue;
         }
 
-        if( host ) {
+        if( host )
+        {
             s = ::connect( sfd, rp->ai_addr, rp->ai_addrlen );
-        } else {
+        }
+        else
+        {
+            int o = 1;
             s = ::bind( sfd, rp->ai_addr, rp->ai_addrlen );
+            ::setsockopt( sfd, SOL_SOCKET, SO_REUSEADDR, &o, sizeof( int ) );
         }
 
         if( s == 0 ) {
@@ -74,9 +79,6 @@ int hulk::core::tcp::bind( int port, int backlog )
 {
     int fd = create_socket( 0, port );
     non_blocking( fd );
-
-    int optval = 1;
-    setsockopt( fd, SOL_SOCKET, SO_REUSEADDR, &optval, sizeof optval );
 
     if( ::listen( fd, backlog ) == -1 ) {
         throw std::runtime_error( "could not bind socket" );

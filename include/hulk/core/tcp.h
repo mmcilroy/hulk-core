@@ -10,16 +10,16 @@ namespace core {
 namespace  tcp {
 
 // -----------------------------------------------------------------------------
-int bind( int port, int backlog );
+int bind( int port, int backlog=1024 );
 int connect( const char* host, int port );
 int non_blocking( int fd );
 
 // -----------------------------------------------------------------------------
 struct callback
 {
-    virtual void on_open( int fd ) = 0;
-    virtual void on_close( int fd ) = 0;
-    virtual void on_recv( int fd, const char* data, size_t len ) = 0;
+    virtual void on_open( int fd ) {}
+    virtual void on_close( int fd ) {}
+    virtual void on_recv( int fd, const char* data, size_t len ) {}
 };
 
 // -----------------------------------------------------------------------------
@@ -29,7 +29,7 @@ public:
     event_loop( int max_events=1024 );
     void watch( int fd, bool listening, callback& cb );
     void dont_watch( int fd );
-    int loop( int timeout=0 );
+    int loop( int timeout=50 );
 
 protected:
     void on_open( struct epoll_event* );
