@@ -53,8 +53,8 @@ int create_socket( const char* host, int port )
         else
         {
             int o = 1;
-            s = ::bind( sfd, rp->ai_addr, rp->ai_addrlen );
             ::setsockopt( sfd, SOL_SOCKET, SO_REUSEADDR, &o, sizeof( int ) );
+            s = ::bind( sfd, rp->ai_addr, rp->ai_addrlen );
         }
 
         if( s == 0 ) {
