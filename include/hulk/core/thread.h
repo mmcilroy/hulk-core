@@ -21,7 +21,7 @@ void sleep_ms( int ms )
 class thread
 {
 public:
-    thread() {
+    void start() {
         pthread_create( &_handle, NULL, &thread::pthread_fn, (void*)this );
     }
 
@@ -29,7 +29,7 @@ public:
         pthread_join( _handle, NULL );
     }
 
-    void yield() {
+    static void yield() {
         pthread_yield();
     }
 

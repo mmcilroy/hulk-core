@@ -11,11 +11,12 @@ namespace hulk {
 namespace core {
 
 // -----------------------------------------------------------------------------
-#define LOG_DEBUG( l, m ) { std::stringstream __ss; __ss << std::endl << "DBG " << ::hulk::core::filename( __FILE__ ) << ":" << __LINE__ << " - " << m; l.write( ::hulk::core::log::DEBUG, __ss.str() ); }
-#define LOG_INFO( l, m )  { std::stringstream __ss; __ss << std::endl << "INF " << ::hulk::core::filename( __FILE__ ) << ":" << __LINE__ << " - " << m; l.write( ::hulk::core::log::INFO, __ss.str() );  }
-#define LOG_ERROR( l, m ) { std::stringstream __ss; __ss << std::endl << "ERR " << ::hulk::core::filename( __FILE__ ) << ":" << __LINE__ << " - " << m; l.write( ::hulk::core::log::ERROR, __ss.str() ); }
+#define LOG_DEBUG( l, m ) { std::stringstream __ss; __ss << std::endl << "DBG " << ::hulk::core::filename( __FILE__ ) << ":" << __LINE__ << " - " << m << std::endl; l.write( ::hulk::core::log::DEBUG, __ss.str() ); }
+#define LOG_INFO( l, m )  { std::stringstream __ss; __ss << std::endl << "INF " << ::hulk::core::filename( __FILE__ ) << ":" << __LINE__ << " - " << m << std::endl; l.write( ::hulk::core::log::INFO, __ss.str() );  }
+#define LOG_ERROR( l, m ) { std::stringstream __ss; __ss << std::endl << "ERR " << ::hulk::core::filename( __FILE__ ) << ":" << __LINE__ << " - " << m << std::endl; l.write( ::hulk::core::log::ERROR, __ss.str() ); }
 
-inline const char* filename( const char* s ) {
+inline const char* filename( const char* s )
+{
     return strrchr( s, '/' ) ? strrchr( s, '/' ) + 1 : s;
 }
 
@@ -34,7 +35,7 @@ public:
 
     virtual void write( level l, const std::string& s )
     {
-        if( l >= _level ) std::cout << s << std::endl;
+        if( l >= _level ) std::cout << s;
     }
 
 private:
