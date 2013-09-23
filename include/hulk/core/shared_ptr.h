@@ -5,7 +5,6 @@
 #include <iostream>
 
 namespace hulk {
-namespace core {
 
 template< class T >
 class shared_ptr
@@ -54,7 +53,6 @@ private:
     unsigned int* _rc;
 };
 
-}
 }
 
 #endif
