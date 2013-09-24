@@ -1,3 +1,3 @@
-add_library( hulk-core stopwatch.cpp tcp.cpp logger.cpp )
 
-install( TARGETS hulk-core DESTINATION lib )
+add_library( hulk_core logger.cpp stopwatch.cpp tcp.cpp thread.cpp )
+install( TARGETS hulk_core DESTINATION lib )

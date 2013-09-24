@@ -2,7 +2,7 @@
 #include "hulk/core/shared_ptr.h"
 #include <iostream>
 
-using namespace hulk::core;
+using namespace hulk;
 
 class my_object
 {

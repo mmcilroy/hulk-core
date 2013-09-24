@@ -3,7 +3,6 @@
 #define _hulk_core_disruptor_h_
 
 #include "hulk/core/thread.h"
-#include "hulk/core/logger.h"
 #include <cstdlib>
 
 namespace hulk {
@@ -14,8 +13,7 @@ class sequence
 public:
     typedef unsigned long long value;
 
-    sequence();
-
+    inline sequence();
     inline value add( size_t s = 1 );
     inline value get() const;
 
@@ -53,8 +51,9 @@ public:
     reader( reader<T>& r );
 
     inline const T& next();
+    inline int available();
 
-private:
+//private:
     ring_buffer<T>& _rb;
     sequence& _barrier;
     sequence _seq;
@@ -84,7 +83,7 @@ public:
     reader_thread( ring_buffer<T>& rb );
     reader_thread( reader_thread<T>& rt );
 
-    reader<T>& get_reader();
+    inline reader<T>& get_reader();
 
 protected:
     virtual void process( const T& item ) = 0;
@@ -182,6 +181,12 @@ const T& reader< T >::next()
     const T& e = _rb.at( _seq );
     _seq.add();
     return e;
+}
+
+template< class T >
+int reader< T >::available()
+{
+    return _barrier.get() - _seq.get();
 }
 
 // -----------------------------------------------------------------------------
