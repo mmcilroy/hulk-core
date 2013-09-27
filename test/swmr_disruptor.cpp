@@ -4,7 +4,7 @@
 #include "hulk/core/disruptor.h"
 #include <iostream>
 
-using namespace hulk::core;
+using namespace hulk;
 
 class my_reader : public reader_thread< int >
 {

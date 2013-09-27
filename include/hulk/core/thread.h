@@ -7,7 +7,6 @@
 #include <pthread.h>
 
 namespace hulk {
-namespace core {
 
 // -----------------------------------------------------------------------------
 void sleep_ms( int ms );
@@ -73,7 +72,6 @@ private:
     mutex _mutex;
 };
 
-}
 }
 
 #endif

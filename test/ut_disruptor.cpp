@@ -4,7 +4,7 @@
 #include "hulk/core/disruptor.h"
 #include <iostream>
 
-using namespace hulk::core;
+using namespace hulk;
 
 void test1()
 {

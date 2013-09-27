@@ -6,7 +6,6 @@
 #include <cstdlib>
 
 namespace hulk {
-namespace core {
 
 class sequence
 {
@@ -246,7 +245,6 @@ reader< T >& reader_thread< T >::get_reader()
     return _reader;
 }
 
-}
 }
 
 #endif

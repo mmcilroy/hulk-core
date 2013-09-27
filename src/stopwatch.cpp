@@ -2,7 +2,7 @@
 #include "hulk/core/stopwatch.h"
 #include <ctime>
 
-using namespace hulk::core;
+using namespace hulk;
 
 void stopwatch::start()
 {

@@ -1,6 +1,6 @@
 
 #include "hulk/core/logger.h"
 
-using namespace hulk::core;
+using namespace hulk;
 
 logger* logger::_instance = 0;

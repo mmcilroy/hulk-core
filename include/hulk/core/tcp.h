@@ -6,30 +6,37 @@
 #include <cstdlib>
 
 namespace hulk {
-namespace core {
-namespace  tcp {
 
 // -----------------------------------------------------------------------------
-int bind( int port, int backlog=1024 );
-int connect( const char* host, int port );
-int non_blocking( int fd );
+int tcp_bind( int port, int backlog=1024 );
+int tcp_connect( const char* host, int port );
+int tcp_non_blocking( int fd );
 
 // -----------------------------------------------------------------------------
-struct callback
+struct tcp_context
 {
-    virtual void on_open( int fd ) {}
-    virtual void on_close( int fd ) {}
-    virtual void on_recv( int fd, const char* data, size_t len ) {}
+    int _fd;
+    void* _data;
 };
 
 // -----------------------------------------------------------------------------
-class event_loop
+struct tcp_callback
+{
+    virtual void on_open( tcp_context& ) {}
+    virtual void on_close( tcp_context& ) {}
+    virtual void on_recv( tcp_context&, const char* data, size_t len ) {}
+};
+
+// -----------------------------------------------------------------------------
+class tcp_event_loop
 {
 public:
-    event_loop( int max_events=1024 );
-    void watch( int fd, bool listening, callback& cb );
+    tcp_event_loop( int max_events=256 );
+    ~tcp_event_loop();
+
+    void watch( int fd, bool listening, tcp_callback& cb );
     void dont_watch( int fd );
-    int loop( int timeout=50 );
+    int loop( int timeout=100 );
 
 protected:
     void on_open( struct epoll_event* );
@@ -42,8 +49,6 @@ private:
     int _max_events;
 };
 
-}
-}
 }
 
 #endif

@@ -2,22 +2,22 @@
 #include "hulk/core/tcp.h"
 #include "hulk/core/logger.h"
 
-using namespace hulk::core;
+using namespace hulk;
 
 log& l = logger::instance().get( "hulk.core.test" );
 
-struct echo_callback : public tcp::callback
+struct echo_callback : public tcp_callback
 {
-    void on_open( int fd ) {
-        LOG_INFO( l, "on_open: " << fd );
+    void on_open( tcp_context& c ) {
+        LOG_INFO( l, "on_open: " << c._fd );
     }
 
-    void on_close( int fd ) {
-        LOG_INFO( l, "on_close: " << fd );
+    void on_close( tcp_context& c) {
+        LOG_INFO( l, "on_close: " << c._fd );
     }
 
-    void on_recv( int fd, const char* data, size_t len ) {
-        LOG_INFO( l, "on_recv: " << fd << " " << len );
+    void on_recv( tcp_context& c, const char* data, size_t len ) {
+        LOG_INFO( l, "on_recv: " << c._fd << " " << len );
     }
 };
 
@@ -25,10 +25,10 @@ int main( int argc, char** argv )
 {
     echo_callback cb;
 
-    tcp::event_loop eloop( 1024 );
-    eloop.watch( tcp::bind( 5557, 1024 ), true, cb );
+    tcp_event_loop eloop;
+    eloop.watch( tcp_bind( 5557 ), true, cb );
 
     while( 1 ) {
-        eloop.loop( 1000 );
+        eloop.loop( 5000 );
     }
 }

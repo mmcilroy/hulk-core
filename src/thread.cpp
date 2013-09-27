@@ -2,7 +2,6 @@
 #include "hulk/core/thread.h"
 
 namespace hulk {
-namespace core {
 
 void sleep_ms( int ms )
 {
@@ -11,5 +10,4 @@ void sleep_ms( int ms )
     nanosleep( &t , &r );
 }
 
-}
 }

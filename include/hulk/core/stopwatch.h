@@ -5,7 +5,6 @@
 #include <sys/time.h>
 
 namespace hulk {
-namespace core {
 
 class stopwatch
 {
@@ -18,7 +17,6 @@ private:
     struct timeval start_time;
 };
 
-}
 }
 
 #endif

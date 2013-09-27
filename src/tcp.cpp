@@ -1,5 +1,6 @@
 
 #include "hulk/core/tcp.h"
+#include "hulk/core/logger.h"
 
 #include <sys/types.h>
 #include <sys/socket.h>
@@ -13,12 +14,14 @@
 #include <stdexcept>
 #include <sstream>
 
-using namespace hulk::core::tcp;
+using namespace hulk;
 
 namespace
 {
 
-int create_socket( const char* host, int port )
+log& l = logger::instance().get( "hulk.core.tcp" );
+
+int tcp_create_socket( const char* host, int port )
 {
     struct addrinfo hints;
     memset( &hints, 0, sizeof( struct addrinfo ) );
@@ -75,10 +78,12 @@ int create_socket( const char* host, int port )
 
 }
 
-int hulk::core::tcp::bind( int port, int backlog )
+int hulk::tcp_bind( int port, int backlog )
 {
-    int fd = create_socket( 0, port );
-    non_blocking( fd );
+    LOG_DEBUG( l, "tcp_bind: port=" << port << ", backlog=" << backlog );
+
+    int fd = tcp_create_socket( 0, port );
+    tcp_non_blocking( fd );
 
     if( ::listen( fd, backlog ) == -1 ) {
         throw std::runtime_error( "could not bind socket" );
@@ -87,12 +92,14 @@ int hulk::core::tcp::bind( int port, int backlog )
     return fd;
 }
 
-int hulk::core::tcp::connect( const char* host, int port )
+int hulk::tcp_connect( const char* host, int port )
 {
-    return create_socket( host, port );
+    LOG_DEBUG( l, "tcp_connect: host=" << host << ", port=" << port );
+
+    return tcp_create_socket( host, port );
 }
 
-int hulk::core::tcp::non_blocking( int fd )
+int hulk::tcp_non_blocking( int fd )
 {
     int flags = fcntl( fd, F_GETFL, 0 );
 
@@ -109,19 +116,24 @@ int hulk::core::tcp::non_blocking( int fd )
 
 struct event_data
 {
-    event_data( int fd, bool listening, callback& cb )
-    : _fd( fd ),
-      _listening( listening ),
-      _cb( cb ) {}
+    event_data( int fd, bool listening, tcp_callback& cb )
+    : _cb( cb ),
+      _listening( listening )
+    {
+        _context._fd = fd;
+        _context._data = 0;
+    }
 
-    int _fd;
+    tcp_context _context;
+    tcp_callback& _cb;
     bool _listening;
-    callback& _cb;
 };
 
-event_loop::event_loop( int max_events )
+tcp_event_loop::tcp_event_loop( int max_events )
 : _max_events( max_events )
 {
+    LOG_DEBUG( l, "new tcp_event_loop @ " << this );
+
     _efd = epoll_create1( 0 );
     if( _efd == -1 ) {
         throw std::runtime_error( "could not create epoll fd" );
@@ -133,58 +145,80 @@ event_loop::event_loop( int max_events )
     }
 }
 
-void event_loop::watch( int fd, bool listening, callback& cb )
+tcp_event_loop::~tcp_event_loop()
 {
+    LOG_DEBUG( l, "del tcp_event_loop @ " << this );
+
+    ::close( _efd );
+    ::free( _events );
+}
+
+void tcp_event_loop::watch( int fd, bool listening, tcp_callback& cb )
+{
+    LOG_DEBUG( l, "watch: fd=" << fd << ", listening=" << ( listening ? "y" : "n" ) );
+
     struct epoll_event event;
-    event.data.ptr = new event_data( fd, listening, cb );
+    event_data* edata = new event_data( fd, listening, cb );
+    event.data.ptr = edata;
     event.events = EPOLLIN | EPOLLET;
 
     if( epoll_ctl( _efd, EPOLL_CTL_ADD, fd, &event ) == -1 ) {
         throw std::runtime_error( "could not watch fd" );
     }
+
+    cb.on_open( edata->_context );
 }
 
-void event_loop::dont_watch( int fd )
+void tcp_event_loop::dont_watch( int fd )
 {
+    LOG_DEBUG( l, "dont_watch: fd=" << fd );
+
     if( epoll_ctl( _efd, EPOLL_CTL_DEL, fd, 0 ) == -1 ) {
         throw std::runtime_error( "could not stop watching fd" );
     }
 }
 
-void event_loop::on_open( struct epoll_event* e )
+void tcp_event_loop::on_open( struct epoll_event* e )
 {
     event_data* edata = (event_data*)e->data.ptr;
 
+    LOG_DEBUG( l, "on_open: fd=" << edata->_context._fd );
+
     struct sockaddr in_addr;
     socklen_t len = sizeof( in_addr );
-    int afd = ::accept( edata->_fd, &in_addr, &len );
+    int afd = ::accept( edata->_context._fd, &in_addr, &len );
 
     if( afd != -1 )
     {
-        non_blocking( afd );
-        edata->_cb.on_open( afd );
+        tcp_non_blocking( afd );
         watch( afd, false, edata->_cb );
     }
 }
 
-void event_loop::on_close( struct epoll_event* e )
+void tcp_event_loop::on_close( struct epoll_event* e )
 {
     event_data* edata = (event_data*)e->data.ptr;
-    dont_watch( edata->_fd );
-    edata->_cb.on_close( edata->_fd );
-    ::close( edata->_fd );
+
+    LOG_DEBUG( l, "on_close: fd=" << edata->_context._fd );
+
+    dont_watch( edata->_context._fd );
+    edata->_cb.on_close( edata->_context );
+    ::close( edata->_context._fd );
     delete edata;
 }
 
-void event_loop::on_recv( struct epoll_event* e )
+void tcp_event_loop::on_recv( struct epoll_event* e )
 {
     event_data* edata = (event_data*)e->data.ptr;
+
+    LOG_DEBUG( l, "on_recv: fd=" << edata->_context._fd );
+
     int done = 0;
 
     while( 1 )
     {
         char buf[512];
-        ssize_t count = ::read( edata->_fd, buf, sizeof buf );
+        ssize_t count = ::read( edata->_context._fd, buf, sizeof buf );
 
         if( count == -1 )
         {
@@ -200,7 +234,7 @@ void event_loop::on_recv( struct epoll_event* e )
             break;
         }
 
-        edata->_cb.on_recv( edata->_fd, buf, count );
+        edata->_cb.on_recv( edata->_context, buf, count );
     }
 
     if( done ) {
@@ -208,7 +242,7 @@ void event_loop::on_recv( struct epoll_event* e )
     }
 }
 
-int event_loop::loop( int timeout )
+int tcp_event_loop::loop( int timeout )
 {
     int n = epoll_wait( _efd, _events, _max_events, timeout );
     for( int i = 0; i < n; i++ )
