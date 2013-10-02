@@ -132,8 +132,6 @@ struct event_data
 tcp_event_loop::tcp_event_loop( int max_events )
 : _max_events( max_events )
 {
-    LOG_DEBUG( l, "new tcp_event_loop @ " << this );
-
     _efd = epoll_create1( 0 );
     if( _efd == -1 ) {
         throw std::runtime_error( "could not create epoll fd" );
@@ -147,8 +145,6 @@ tcp_event_loop::tcp_event_loop( int max_events )
 
 tcp_event_loop::~tcp_event_loop()
 {
-    LOG_DEBUG( l, "del tcp_event_loop @ " << this );
-
     ::close( _efd );
     ::free( _events );
 }
