@@ -162,7 +162,9 @@ void tcp_event_loop::watch( int fd, bool listening, tcp_callback& cb )
         throw std::runtime_error( "could not watch fd" );
     }
 
-    cb.on_open( edata->_context );
+    if( !listening ) {
+        cb.on_open( edata->_context );
+    }
 }
 
 void tcp_event_loop::dont_watch( int fd )
