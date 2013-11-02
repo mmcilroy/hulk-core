@@ -1,6 +1,6 @@
 
-#ifndef _hulk_core_logger_h_
-#define _hulk_core_logger_h_
+#ifndef _hulk_logger_h_
+#define _hulk_logger_h_
 
 #include <map>
 #include <sstream>

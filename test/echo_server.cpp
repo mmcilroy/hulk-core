@@ -26,7 +26,7 @@ int main( int argc, char** argv )
     echo_callback cb;
 
     tcp_event_loop eloop;
-    eloop.watch( tcp_bind( 5557 ), true, cb );
+    eloop.watch( tcp_bind( atoi( argv[1] ) ), true, cb );
 
     while( 1 ) {
         eloop.loop( 5000 );

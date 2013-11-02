@@ -1,6 +1,6 @@
 
-#ifndef _hulk_core_thread_h_
-#define _hulk_core_thread_h_
+#ifndef _hulk_thread_h_
+#define _hulk_thread_h_
 
 #include <stdio.h>
 #include <time.h>
@@ -24,6 +24,10 @@ public:
 
     static void yield() {
         pthread_yield();
+    }
+
+    static void sleep( int ms ) {
+        sleep_ms( ms );
     }
 
 private:

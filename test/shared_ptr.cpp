@@ -22,14 +22,15 @@ public:
 
 int main( int argc, char** argv )
 {
-    shared_ptr< my_object > p1( new my_object );
-    shared_ptr< my_object > p2( p1 );
+    {
+        shared_ptr< my_object > p1( new my_object );
+        shared_ptr< my_object > p2( p1 );
+        p2.reset();
+        p1->hello();
+    }
 
-    std::cout << "pointee: " << p1.get() << std::endl;
-    std::cout << "pointee: " << p2.get() << std::endl;
-
-    p1->hello();
-    p2->hello();
-    (*p1).hello();
-    (*p2).hello();
+    {
+        shared_ptr< my_object > p3( new my_object );
+        p3->hello();
+    }
 }

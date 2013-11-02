@@ -1,8 +1,6 @@
 
-#ifndef _hulk_core_shared_ptr_h_
-#define _hulk_core_shared_ptr_h_
-
-#include <iostream>
+#ifndef _hulk_shared_ptr_h_
+#define _hulk_shared_ptr_h_
 
 namespace hulk {
 
@@ -10,32 +8,48 @@ template< class T >
 class shared_ptr
 {
 public:
-    shared_ptr( T* o )
+    shared_ptr()
+    : _rc( 0 ), _pointee( 0 )
     {
-        _pointee = o;
+    }
+
+    shared_ptr( T* o )
+    : _pointee( o )
+    {
         _rc = new unsigned int;
         *_rc = 1;
     }
 
     shared_ptr( shared_ptr<T>& sp )
     {
-        _pointee = sp._pointee;
-        _rc = sp._rc;
-        ++(*_rc);
+        assign( sp );
     }
 
     ~shared_ptr()
     {
-        if( --(*_rc) == 0 )
-        {
-            delete _pointee;
-            delete _rc;
-        }
+        reset();
     }
 
     T* get() const
     {
         return _pointee;
+    }
+
+    void reset()
+    {
+        if( _pointee && _rc && --(*_rc) == 0 )
+        {
+            delete _pointee;
+            delete _rc;
+        }
+
+        _pointee = 0;
+        _rc = 0;
+    }
+
+    shared_ptr<T>& operator=( const shared_ptr<T>& rhs )
+    {
+        return assign( rhs );
     }
 
     T* operator->() const
@@ -48,7 +62,24 @@ public:
         return *_pointee;
     }
 
+    operator bool() const
+    {
+        return _pointee != 0;
+    }
+
 private:
+    shared_ptr<T>& assign( const shared_ptr<T>& sp )
+    {
+        _pointee = sp._pointee;
+        _rc = sp._rc;
+
+        if( _rc ) {
+            ++(*_rc);
+        }
+
+        return *this;
+    }
+
     T* _pointee;
     unsigned int* _rc;
 };

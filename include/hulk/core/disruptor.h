@@ -1,6 +1,6 @@
 
-#ifndef _hulk_core_disruptor_h_
-#define _hulk_core_disruptor_h_
+#ifndef _hulk_disruptor_h_
+#define _hulk_disruptor_h_
 
 #include "hulk/core/thread.h"
 #include <cstdlib>

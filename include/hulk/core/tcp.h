@@ -1,6 +1,6 @@
 
-#ifndef _hulk_core_tcp_
-#define _hulk_core_tcp_
+#ifndef _hulk_tcp_
+#define _hulk_tcp_
 
 #include <sys/epoll.h>
 #include <cstdlib>

@@ -1,6 +1,6 @@
 
-#ifndef _hulk_core_stopwatch_h_
-#define _hulk_core_stopwatch_h_
+#ifndef _hulk_stopwatch_h_
+#define _hulk_stopwatch_h_
 
 #include <sys/time.h>
 
