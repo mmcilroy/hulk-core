@@ -104,11 +104,11 @@ int hulk::tcp_non_blocking( int fd )
     int flags = fcntl( fd, F_GETFL, 0 );
 
     if( flags == -1 ) {
-        throw std::runtime_error( "fcntl() failed F_GETFL" );
+        throw std::runtime_error( "fcntl get failed" );
     }
 
     if( fcntl( fd, F_SETFL, flags | O_NONBLOCK ) == -1 ) {
-        throw std::runtime_error( "fcntl() failed F_SETFL" );
+        throw std::runtime_error( "fcntl set failed" );
     }
 
     return fd;
@@ -116,16 +116,23 @@ int hulk::tcp_non_blocking( int fd )
 
 struct event_data
 {
-    event_data( int fd, bool listening, tcp_callback& cb )
+    event_data( int fd, bool listening, shared_ptr< tcp_callback >& cb )
     : _cb( cb ),
       _listening( listening )
     {
+        LOG_DEBUG( l, "new event_data @ " << this );
+
         _context._fd = fd;
         _context._data = 0;
     }
 
+    ~event_data()
+    {
+        LOG_DEBUG( l, "del event_data @ " << this );
+    }
+
     tcp_context _context;
-    tcp_callback& _cb;
+    shared_ptr< tcp_callback > _cb;
     bool _listening;
 };
 
@@ -149,7 +156,7 @@ tcp_event_loop::~tcp_event_loop()
     ::free( _events );
 }
 
-void tcp_event_loop::watch( int fd, bool listening, tcp_callback& cb )
+void tcp_event_loop::watch( int fd, bool listening, shared_ptr< tcp_callback >& cb )
 {
     LOG_DEBUG( l, "watch: fd=" << fd << ", listening=" << ( listening ? "y" : "n" ) );
 
@@ -163,16 +170,7 @@ void tcp_event_loop::watch( int fd, bool listening, tcp_callback& cb )
     }
 
     if( !listening ) {
-        cb.on_open( edata->_context );
-    }
-}
-
-void tcp_event_loop::dont_watch( int fd )
-{
-    LOG_DEBUG( l, "dont_watch: fd=" << fd );
-
-    if( epoll_ctl( _efd, EPOLL_CTL_DEL, fd, 0 ) == -1 ) {
-        throw std::runtime_error( "could not stop watching fd" );
+        cb->on_open( edata->_context );
     }
 }
 
@@ -197,12 +195,23 @@ void tcp_event_loop::on_close( struct epoll_event* e )
 {
     event_data* edata = (event_data*)e->data.ptr;
 
-    LOG_DEBUG( l, "on_close: fd=" << edata->_context._fd );
+    if( edata )
+    {
+        LOG_DEBUG( l, "on_close: fd=" << edata->_context._fd );
 
-    dont_watch( edata->_context._fd );
-    edata->_cb.on_close( edata->_context );
-    ::close( edata->_context._fd );
-    delete edata;
+        edata->_cb->on_close( edata->_context );
+
+        int err = epoll_ctl( _efd, EPOLL_CTL_DEL, edata->_context._fd, 0 );
+        if( err == -1 ) {
+            LOG_ERROR( l, "epoll_ctl del failed: " << strerror( err ) );
+        }
+
+        delete edata;
+    }
+    else
+    {
+        LOG_ERROR( l, "on_close: null edata" );
+    }
 }
 
 void tcp_event_loop::on_recv( struct epoll_event* e )
@@ -232,7 +241,7 @@ void tcp_event_loop::on_recv( struct epoll_event* e )
             break;
         }
 
-        edata->_cb.on_recv( edata->_context, buf, count );
+        edata->_cb->on_recv( edata->_context, buf, count );
     }
 
     if( done ) {

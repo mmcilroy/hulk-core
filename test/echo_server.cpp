@@ -23,7 +23,7 @@ struct echo_callback : public tcp_callback
 
 int main( int argc, char** argv )
 {
-    echo_callback cb;
+    shared_ptr< tcp_callback > cb( new echo_callback );
 
     tcp_event_loop eloop;
     eloop.watch( tcp_bind( atoi( argv[1] ) ), true, cb );

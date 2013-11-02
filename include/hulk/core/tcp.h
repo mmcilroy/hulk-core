@@ -2,6 +2,7 @@
 #ifndef _hulk_tcp_
 #define _hulk_tcp_
 
+#include "hulk/core/shared_ptr.h"
 #include <sys/epoll.h>
 #include <cstdlib>
 
@@ -34,8 +35,7 @@ public:
     tcp_event_loop( int max_events=256 );
     ~tcp_event_loop();
 
-    void watch( int fd, bool listening, tcp_callback& cb );
-    void dont_watch( int fd );
+    void watch( int fd, bool listening, shared_ptr< tcp_callback >& cb );
     int loop( int timeout=100 );
 
 protected:
@@ -44,6 +44,8 @@ protected:
     void on_recv( struct epoll_event* );
 
 private:
+    void dont_watch( int fd );
+
     struct epoll_event* _events;
     int _efd;
     int _max_events;
