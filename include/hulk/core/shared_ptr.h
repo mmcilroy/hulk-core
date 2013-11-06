@@ -2,6 +2,8 @@
 #ifndef _hulk_shared_ptr_h_
 #define _hulk_shared_ptr_h_
 
+#include <stdexcept>
+
 namespace hulk {
 
 template< class T >
@@ -54,11 +56,19 @@ public:
 
     T* operator->() const
     {
+        if( !_pointee ) {
+            throw std::runtime_error( "null shared_ptr" );
+        }
+
         return _pointee;
     }
 
     T& operator*() const
     {
+        if( !_pointee ) {
+            throw std::runtime_error( "null shared_ptr" );
+        }
+
         return *_pointee;
     }
 
