@@ -1,4 +1,3 @@
 language: cpp
-compiler:
-  - gcc
-script: ./configure && make
+compiler: gcc
+script:   cmake && make all
