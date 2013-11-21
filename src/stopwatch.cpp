@@ -24,3 +24,4 @@ float stopwatch::elapsed_s()
 {
     return elapsed_ms() / 1000.0f;
 }
+
