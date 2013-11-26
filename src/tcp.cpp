@@ -136,8 +136,9 @@ struct event_data
     bool _listening;
 };
 
-tcp_event_loop::tcp_event_loop( int max_events )
-: _max_events( max_events )
+tcp_event_loop::tcp_event_loop( int max_events, int max_recv_buf )
+: _max_events( max_events ),
+  _max_recv_buf( max_recv_buf )
 {
     _efd = epoll_create1( 0 );
     if( _efd == -1 ) {
@@ -148,15 +149,29 @@ tcp_event_loop::tcp_event_loop( int max_events )
     if( _events == 0 ) {
         throw std::runtime_error( "could not create epoll events" );
     }
+
+    _recv_buf = new char[max_recv_buf];
+    if( _recv_buf == 0 ) {
+        throw std::runtime_error( "could not create recv buffer" );
+    }
 }
 
 tcp_event_loop::~tcp_event_loop()
 {
-    ::close( _efd );
-    ::free( _events );
+    if( _efd ) {
+        ::close( _efd );
+    }
+
+    if( _events ) {
+        ::free( _events );
+    }
+
+    if( _recv_buf ) {
+        delete [] _recv_buf;
+    }
 }
 
-void tcp_event_loop::watch( int fd, bool listening, shared_ptr< tcp_callback >& cb )
+int tcp_event_loop::watch( int fd, bool listening, shared_ptr< tcp_callback >& cb )
 {
     LOG_DEBUG( l, "watch: fd=" << fd << ", listening=" << ( listening ? "y" : "n" ) );
 
@@ -172,6 +187,8 @@ void tcp_event_loop::watch( int fd, bool listening, shared_ptr< tcp_callback >& 
     if( !listening ) {
         cb->on_open( edata->_context );
     }
+
+    return fd;
 }
 
 void tcp_event_loop::on_open( struct epoll_event* e )
@@ -252,6 +269,7 @@ void tcp_event_loop::on_recv( struct epoll_event* e )
 int tcp_event_loop::loop( int timeout )
 {
     int n = epoll_wait( _efd, _events, _max_events, timeout );
+
     for( int i = 0; i < n; i++ )
     {
         event_data* edata = (event_data*)_events[i].data.ptr;

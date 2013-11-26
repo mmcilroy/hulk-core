@@ -32,10 +32,10 @@ struct tcp_callback
 class tcp_event_loop
 {
 public:
-    tcp_event_loop( int max_events=256 );
+    tcp_event_loop( int max_events=256, int max_recv_buf=512 );
     ~tcp_event_loop();
 
-    void watch( int fd, bool listening, shared_ptr< tcp_callback >& cb );
+    int watch( int fd, bool listening, shared_ptr< tcp_callback >& cb );
     int loop( int timeout=100 );
 
 protected:
@@ -47,8 +47,10 @@ private:
     void dont_watch( int fd );
 
     struct epoll_event* _events;
+    char* _recv_buf;
     int _efd;
     int _max_events;
+    int _max_recv_buf;
 };
 
 }

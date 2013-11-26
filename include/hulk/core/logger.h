@@ -32,6 +32,11 @@ public:
         _level = l;
     }
 
+    void set_level( level l )
+    {
+        _level = l;
+    }
+
     virtual void write( level l, const std::string& s )
     {
         if( l >= _level ) std::cout << s;
