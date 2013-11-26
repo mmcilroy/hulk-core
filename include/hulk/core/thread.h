@@ -2,8 +2,6 @@
 #ifndef _hulk_thread_h_
 #define _hulk_thread_h_
 
-#include <stdio.h>
-#include <time.h>
 #include <pthread.h>
 
 namespace hulk {
@@ -15,45 +13,62 @@ void sleep_ms( int ms );
 class thread
 {
 public:
-    void start() {
+    thread()
+    : _started( false )
+    {
+    }
+
+    void start()
+    {
         pthread_create( &_handle, NULL, &thread::pthread_fn, (void*)this );
+        _started = true;
     }
 
-    void join() {
-        pthread_join( _handle, NULL );
+    void join()
+    {
+        if( _started ) {
+            pthread_join( _handle, NULL );
+        }
     }
 
-    static void yield() {
+    static void yield()
+    {
         pthread_yield();
     }
 
-    static void sleep( int ms ) {
+    static void sleep( int ms )
+    {
         sleep_ms( ms );
     }
 
 private:
     virtual void run() = 0;
 
-    static void* pthread_fn( void* t ) {
+    static void* pthread_fn( void* t )
+    {
         ((thread*)t)->run();
     }
 
     pthread_t _handle;
+    bool _started;
 };
 
 // -----------------------------------------------------------------------------
 class mutex
 {
 public:
-    mutex() {
+    mutex()
+    {
         pthread_mutex_init( &_mutex, NULL );
     }
 
-    void lock() {
+    void lock()
+    {
         pthread_mutex_lock( &_mutex );
     }
 
-    void unlock() {
+    void unlock()
+    {
         pthread_mutex_unlock( &_mutex );
     }
 
@@ -65,11 +80,13 @@ private:
 class lock_guard
 {
 public:
-    lock_guard( mutex& mutex ) : _mutex( mutex ) { 
+    lock_guard( mutex& mutex ) : _mutex( mutex )
+    { 
         _mutex.lock();
     }
 
-    ~lock_guard() {
+    ~lock_guard()
+    {
         _mutex.unlock();
     }
 

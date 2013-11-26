@@ -69,7 +69,7 @@ public:
     }
 
 private:
-    logger() : _default_log( log::DEBUG ) {}
+    logger() : _default_log( log::INFO ) {}
 
     typedef std::map< std::string, log* > logmap;
 

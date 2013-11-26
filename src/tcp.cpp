@@ -199,9 +199,9 @@ void tcp_event_loop::on_open( struct epoll_event* e )
 
     struct sockaddr in_addr;
     socklen_t len = sizeof( in_addr );
-    int afd = ::accept( edata->_context._fd, &in_addr, &len );
 
-    if( afd != -1 )
+    int afd;
+    while( ( afd = ::accept( edata->_context._fd, &in_addr, &len ) ) != -1 )
     {
         tcp_non_blocking( afd );
         watch( afd, false, edata->_cb );
