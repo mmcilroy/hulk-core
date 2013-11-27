@@ -3,6 +3,7 @@
 #define _hulk_disruptor_h_
 
 #include "hulk/core/thread.h"
+#include "hulk/core/stopwatch.h"
 #include <cstdlib>
 
 namespace hulk {
@@ -13,7 +14,7 @@ public:
     typedef unsigned long long value;
 
     inline sequence();
-    inline value add( size_t s = 1 );
+    inline value add( size_t s=1 );
     inline value get() const;
 
 private:
@@ -49,7 +50,7 @@ public:
     reader( ring_buffer<T>& rb );
     reader( reader<T>& r );
 
-    inline const T& next();
+    inline const T* next( int timeout=1000 );
     inline int available();
 
 //private:
@@ -83,6 +84,7 @@ public:
     reader_thread( reader_thread<T>& rt );
 
     inline reader<T>& get_reader();
+    inline void stop();
 
 protected:
     virtual void process( const T& item ) = 0;
@@ -91,6 +93,7 @@ private:
     virtual void run();
 
     reader<T> _reader;
+    bool _stop;
 };
 
 // -----------------------------------------------------------------------------
@@ -171,15 +174,28 @@ reader< T >::reader( reader<T>& r )
 }
 
 template< class T >
-const T& reader< T >::next()
+const T* reader< T >::next( int timeout )
 {
-    while( _barrier.get() - _seq.get() <= 0 ) {
-        thread::yield();
+    if( available() <= 0 )
+    {
+        stopwatch watch;
+        watch.start();
+
+        while( available() <= 0 && watch.elapsed_ms() < timeout ) {
+            thread::yield();
+        }
     }
 
-    const T& e = _rb.at( _seq );
-    _seq.add();
-    return e;
+    if( available() > 0 )
+    {
+        const T* e = &_rb.at( _seq );
+        _seq.add();
+        return e;
+    }
+    else
+    {
+        return 0;
+    }
 }
 
 template< class T >
@@ -199,7 +215,7 @@ writer< T >::writer( reader< T >& r )
 template< class T >
 T& writer< T >::next()
 {
-    while( _rb.get_sequence().get() - _barrier.get() >= _rb.size() ) {
+    while( _rb.get_sequence().get() - _barrier.get() >= _rb.size()-1 ) {
         thread::yield();
     }
 
@@ -215,27 +231,34 @@ void writer< T >::commit()
 // -----------------------------------------------------------------------------
 template< class T >
 reader_thread< T >::reader_thread( reader< T >& r )
-: _reader( r )
+: _reader( r ),
+  _stop( false )
 {
 }
 
 template< class T >
 reader_thread< T >::reader_thread( ring_buffer< T >& rb )
-: _reader( rb )
+: _reader( rb ),
+  _stop( false )
 {
 }
 
 template< class T >
 reader_thread< T >::reader_thread( reader_thread< T >& rt )
-: _reader( rt._reader )
+: _reader( rt._reader ),
+  _stop( false )
 {
 }
 
 template< class T >
 void reader_thread< T >::run()
 {
-    while( 1 ) {
-        process( _reader.next() );
+    while( !_stop )
+    {
+        const T* e = _reader.next();
+        if( e ) {
+            process( *e );
+        }
     }
 }
 
@@ -243,6 +266,12 @@ template< class T >
 reader< T >& reader_thread< T >::get_reader()
 {
     return _reader;
+}
+
+template< class T >
+void reader_thread< T >::stop()
+{
+    _stop = true;
 }
 
 }

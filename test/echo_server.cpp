@@ -8,15 +8,18 @@ log& l = logger::instance().get( "hulk.core.test" );
 
 struct echo_callback : public tcp_callback
 {
-    void on_open( tcp_context& c ) {
+    void on_open( tcp_context& c )
+    {
         LOG_INFO( l, "on_open: " << c._fd );
     }
 
-    void on_close( tcp_context& c) {
+    void on_close( tcp_context& c )
+    {
         LOG_INFO( l, "on_close: " << c._fd );
     }
 
-    void on_recv( tcp_context& c, const char* data, size_t len ) {
+    void on_recv( tcp_context& c, const char* data, size_t len )
+    {
         LOG_INFO( l, "on_recv: " << c._fd << " " << len );
     }
 };
