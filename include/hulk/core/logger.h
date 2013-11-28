@@ -6,6 +6,7 @@
 #include <sstream>
 #include <iostream>
 #include <cstring>
+#include <cstdlib>
 
 namespace hulk {
 
@@ -18,6 +19,8 @@ inline const char* filename( const char* s )
 {
     return strrchr( s, '/' ) ? strrchr( s, '/' ) + 1 : s;
 }
+
+void logger_cleanup();
 
 // -----------------------------------------------------------------------------
 class log
@@ -68,8 +71,20 @@ public:
         }
     }
 
+    ~logger()
+    {
+        logmap::const_iterator it = _logs.begin();
+        for( ; it != _logs.begin(); it++ ) {
+            delete it->second;
+        }
+    }
+
 private:
-    logger() : _default_log( log::INFO ) {}
+    logger()
+    : _default_log( log::INFO )
+    {
+        atexit( logger_cleanup );
+    }
 
     typedef std::map< std::string, log* > logmap;
 

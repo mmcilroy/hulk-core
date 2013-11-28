@@ -11,7 +11,8 @@ class shared_ptr
 {
 public:
     shared_ptr()
-    : _rc( 0 ), _pointee( 0 )
+    : _rc( 0 ),
+      _pointee( 0 )
     {
     }
 
@@ -22,7 +23,7 @@ public:
         *_rc = 1;
     }
 
-    shared_ptr( shared_ptr<T>& sp )
+    shared_ptr( const shared_ptr<T>& sp )
     {
         assign( sp );
     }

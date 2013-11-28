@@ -107,7 +107,7 @@ private:
             }
         }
 
-        delete buf;
+        delete [] buf;
 
         ::close( _fd );
     }

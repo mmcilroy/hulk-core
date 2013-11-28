@@ -114,13 +114,13 @@ int hulk::tcp_non_blocking( int fd )
     return fd;
 }
 
-struct event_data
+struct hulk::event_data
 {
-    event_data( int fd, bool listening, shared_ptr< tcp_callback >& cb )
+    event_data( int fd, bool listening, const shared_ptr< tcp_callback >& cb )
     : _cb( cb ),
       _listening( listening )
     {
-        LOG_DEBUG( l, "new event_data @ " << this );
+        LOG_DEBUG( l, "new event_data @ " << this << ", fd " << fd );
 
         _context._fd = fd;
         _context._data = 0;
@@ -169,14 +169,27 @@ tcp_event_loop::~tcp_event_loop()
     if( _recv_buf ) {
         delete [] _recv_buf;
     }
+
+    std::set< event_data* >::const_iterator it = _event_data.begin();
+    for( ; it != _event_data.end(); ++it )
+    {
+        event_data* edata = (*it);
+        if( edata )
+        {
+            ::close( edata->_context._fd );
+            delete edata;
+        }
+    }
 }
 
-int tcp_event_loop::watch( int fd, bool listening, shared_ptr< tcp_callback >& cb )
+int tcp_event_loop::watch( int fd, bool listening, const shared_ptr< tcp_callback >& cb )
 {
     LOG_DEBUG( l, "watch: fd=" << fd << ", listening=" << ( listening ? "y" : "n" ) );
 
-    struct epoll_event event;
     event_data* edata = new event_data( fd, listening, cb );
+    _event_data.insert( edata );
+
+    struct epoll_event event;
     event.data.ptr = edata;
     event.events = EPOLLIN | EPOLLET;
 
@@ -223,6 +236,7 @@ void tcp_event_loop::on_close( struct epoll_event* e )
             LOG_ERROR( l, "epoll_ctl del failed: " << strerror( err ) );
         }
 
+        _event_data.erase( edata );
         delete edata;
     }
     else
@@ -241,8 +255,7 @@ void tcp_event_loop::on_recv( struct epoll_event* e )
 
     while( 1 )
     {
-        char buf[512];
-        ssize_t count = ::read( edata->_context._fd, buf, sizeof buf );
+        ssize_t count = ::read( edata->_context._fd, _recv_buf, _max_recv_buf );
 
         if( count == -1 )
         {
@@ -258,7 +271,7 @@ void tcp_event_loop::on_recv( struct epoll_event* e )
             break;
         }
 
-        edata->_cb->on_recv( edata->_context, buf, count );
+        edata->_cb->on_recv( edata->_context, _recv_buf, count );
     }
 
     if( done ) {

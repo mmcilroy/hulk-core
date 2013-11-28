@@ -3,8 +3,9 @@
 #define _hulk_tcp_
 
 #include "hulk/core/shared_ptr.h"
-#include <sys/epoll.h>
+#include <set>
 #include <cstdlib>
+#include <sys/epoll.h>
 
 namespace hulk {
 
@@ -29,13 +30,15 @@ struct tcp_callback
 };
 
 // -----------------------------------------------------------------------------
+class event_data;
+
 class tcp_event_loop
 {
 public:
     tcp_event_loop( int max_events=256, int max_recv_buf=512 );
     ~tcp_event_loop();
 
-    int watch( int fd, bool listening, shared_ptr< tcp_callback >& cb );
+    int watch( int fd, bool listening, const shared_ptr< tcp_callback >& cb );
     int loop( int timeout=100 );
 
 protected:
@@ -51,6 +54,8 @@ private:
     int _efd;
     int _max_events;
     int _max_recv_buf;
+
+    std::set< event_data* > _event_data;
 };
 
 }
