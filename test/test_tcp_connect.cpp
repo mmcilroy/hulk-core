@@ -1,7 +1,7 @@
 
 #include "hulk/core/tcp.h"
 #include "hulk/core/logger.h"
-
+#include <unistd.h>
 #include <iostream>
 
 using namespace hulk;

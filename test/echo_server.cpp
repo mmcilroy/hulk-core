@@ -1,26 +1,36 @@
 
 #include "hulk/core/tcp.h"
-#include "hulk/core/logger.h"
+#include <iostream>
+#include <cstring>
+
+#include <sys/socket.h>
 
 using namespace hulk;
-
-log& l = logger::instance().get( "hulk.core.test" );
 
 struct echo_callback : public tcp_callback
 {
     void on_open( tcp_context& c )
     {
-        LOG_INFO( l, "on_open: " << c._fd );
+        std::cout << "on_open: " << c._fd << std::endl;
     }
 
     void on_close( tcp_context& c )
     {
-        LOG_INFO( l, "on_close: " << c._fd );
+        std::cout << "on_close: " << c._fd << std::endl;
     }
 
     void on_recv( tcp_context& c, const char* data, size_t len )
     {
-        LOG_INFO( l, "on_recv: " << c._fd << " " << len );
+        char* s = new char[len+1];
+        strncpy( s, data, len );
+        s[len] = 0;
+
+        std::cout << "on_recv: " << s << std::endl;
+
+        const char* m = "<html><body><h1>hi</h1></body></html>";
+        ::send( c._fd, m, strlen( m ), 0 );
+
+        delete s;
     }
 };
 
